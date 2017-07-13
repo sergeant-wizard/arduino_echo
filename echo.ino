@@ -1,17 +1,16 @@
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(38400);
 }
 
 void loop()
 {
-  int buff[10];
+  byte buff[10];
   int cnt = 0;
-  while (Serial.available() > 0) {
+  int max_len = 16
+  while (Serial.available() > 0 && cnt < max_len) {
     buff[cnt++] = Serial.read();
   }
-  for (int i = 0; i < cnt; i++) {
-    Serial.write(i);
-  }
+  Serial.write(buff, max_len);
 }
