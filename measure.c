@@ -5,6 +5,14 @@
 #include <unistd.h>
 #include <stdio.h>
 
+// Linux specific
+#include <linux/serial.h>
+#include <linux/ioctl.h>
+#include <asm/ioctls.h>
+
+// for measuring time
+#include <sys/time.h>
+
 int set_interface_attribs (int fd, int speed, int parity)
 {
     struct termios tty;
@@ -66,6 +74,16 @@ void set_blocking (int fd, int should_block)
 int main(void)
 {
     char portname[] = "/dev/ttyACM0";
+
+    int serial = open("/dev/ttyACM0", O_RDWR | O_NOCTTY );
+
+    /*
+    struct serial_struct ser_info;
+	ioctl(serial, TIOCGSERIAL, &ser_info);
+    ser_info.flags |= ASYNC_LOW_LATENCY;
+    ioctl(serial, TIOCSSERIAL, &ser_info);
+    */
+
     int fd = open(portname, O_RDWR | O_NOCTTY | O_SYNC);
     if (fd < 0)
     {
@@ -73,13 +91,19 @@ int main(void)
         return;
     }
 
-    set_interface_attribs (fd, B115200, 0);  // set speed to 115,200 bps, 8n1 (no parity)
-    set_blocking (fd, 0);                // set no blocking
+    set_interface_attribs (fd, B38400, 0);  // set speed to 115,200 bps, 8n1 (no parity)
+    set_blocking (fd, 1);                // set no blocking
 
-    write (fd, "hello!\n", 7);           // send 7 character greeting
+    sleep(3);
 
-    usleep ((7 + 25) * 100);             // sleep enough to transmit the 7 plus
+    struct timeval before, after;
+    gettimeofday(&before, NULL);
+
+    write (fd, "a", 1);           // send 7 character greeting
     // receive 25:  approx 100 uS per char transmit
-    char buf [100];
+    char buf [1];
     int n = read (fd, buf, sizeof buf);  // read up to 100 characters if ready to read
+
+    gettimeofday(&after, NULL);
+    printf("%lu\n", 1000000 * (after.tv_sec - before.tv_sec) + after.tv_usec - before.tv_usec);
 }
