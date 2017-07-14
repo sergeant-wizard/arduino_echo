@@ -6,11 +6,8 @@ void setup()
 
 void loop()
 {
-  byte buff[10];
-  int cnt = 0;
-  int max_len = 16
-  while (Serial.available() > 0 && cnt < max_len) {
-    buff[cnt++] = Serial.read();
+  if (Serial.available() > 0) {
+    int a = Serial.read();
+    Serial.write(a);
   }
-  Serial.write(buff, max_len);
 }
